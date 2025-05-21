@@ -102,7 +102,7 @@ Worm* Bird::findPrey() {
     const std::vector<long long int>& agentIds = currentCell->getAgentIds();
     for (long long int agentId : agentIds) {
         Agent* agent = model->getAgent(agentId);
-        if (agent && agent->getType() == "Bird") {
+        if (agent && agent->getType() == "Worm") {
             Worm* prey = dynamic_cast<Worm*>(agent);
             if (prey && !prey->isBurrowed()) {
                 return prey;
