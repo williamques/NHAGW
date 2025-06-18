@@ -84,10 +84,18 @@ void Model::loop()
            std::cout << "[Model] Step: " << stepCount << std::endl;
            simulationState.stepOnce = false;
        }
+       // Handle queued steps
+       while (simulationState.stepsToRun > 0) {
+           step();
+           std::cout << "[Model] Step: " << stepCount << std::endl;
+           simulationState.stepsToRun--;
+       }
        if (!simulationState.playing) {
-           // Wait on cv until playing is true
+           // Wait on cv until playing is true or steps are queued
            std::unique_lock lk(simulationState.m);
-           simulationState.cv.wait(lk);
+           simulationState.cv.wait(lk, [this]{
+               return simulationState.playing || simulationState.stepOnce || simulationState.stepsToRun > 0 || !simulationState.running;
+           });
        }  
        else {  
            step();
@@ -115,6 +123,19 @@ void Model::step() {
 
     // Increment step counter
     stepCount++;
+}
+
+void Model::step(int x) {
+    for (int i = 0; i < x; ++i) {
+        step();
+    }
+}
+
+void Model::queueSteps(int n) {
+    if (n > 0) {
+        simulationState.stepsToRun += n;
+    }
+    wake();
 }
 
 void Model::shuffle_step() {
