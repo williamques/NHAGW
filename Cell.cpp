@@ -21,29 +21,33 @@ void Cell::initialize(Model* m, int row, int col) {
 }
 
 std::vector<Cell*> Cell::getOrthogonalNeighbors() {
+    return getNeighborsWithinDistance(1);
+}
+
+std::vector<Cell*> Cell::getNeighborsWithinDistance(int distance) {
     std::vector<Cell*> neighbors;
-    neighbors.reserve(10);
-    const std::vector<std::pair<int, int>> directions = {
-        {-1, 0}, {1, 0}, {0, -1}, {0, 1}
-    };
+    neighbors.reserve(2 * distance * distance + 2 * distance);
 
-    for (auto [dx, dy] : directions) {
-        int nx = x + dx;
-        int ny = y + dy;
+    for (int dx = -distance; dx <= distance; ++dx) {
+        int maxDy = distance - std::abs(dx);
+        for (int dy = -maxDy; dy <= maxDy; ++dy) {
+            if (dx == 0 && dy == 0) continue; // Skip the center cell (self)
+            int nx = x + dx;
+            int ny = y + dy;
 
-        if (model->isTorus()) {
-            nx = (nx + model->getHeight()) % model->getHeight();
-            ny = (ny + model->getWidth()) % model->getWidth();
-        }
-        else {
-            if (nx < 0 || nx >= model->getHeight() || ny < 0 || ny >= model->getWidth()) {
-                continue;
+            if (model->isTorus()) {
+                nx = (nx + model->getHeight()) % model->getHeight();
+                ny = (ny + model->getWidth()) % model->getWidth();
             }
-        }
-
-        Cell* neighbor = model->getCell(nx, ny);
-        if (neighbor) {
-            neighbors.push_back(neighbor);
+            else {
+                if (nx < 0 || nx >= model->getHeight() || ny < 0 || ny >= model->getWidth()) {
+                    continue;
+                }
+            }
+            Cell* neighbor = model->getCell(nx, ny);
+            if (neighbor) {
+                neighbors.push_back(neighbor);
+            }
         }
     }
     return neighbors;

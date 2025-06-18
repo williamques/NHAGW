@@ -30,6 +30,7 @@ public:
 
     void initialize(Model* m, int row, int col);
     std::vector<Cell*> getOrthogonalNeighbors();
+    std::vector<Cell*> getNeighborsWithinDistance(int distance);
     Cell* getRandomNeighbor();
 
     void setWeather(weatherState w);
