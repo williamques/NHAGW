@@ -34,8 +34,10 @@ void CLI::processInput() {
     std::cout << "[CLI] IO thread running with ID: " << std::this_thread::get_id() << std::endl;
     while (running) {
         std::string input;
-        std::cin >> input;
-        handleCommand(input);
+        std::getline(std::cin, input);
+        if (!input.empty()) {
+            handleCommand(input);
+        }
     }
     std::cout << "[CLI] IO thread exiting with ID: " << std::this_thread::get_id() << std::endl;
 }
@@ -44,14 +46,28 @@ void CLI::handleCommand(const std::string& command) {
     std::string cmd, rmd;
     int end = command.find(' ');
     cmd = command.substr(0, end);
-    rmd = command.substr(end + 1);
+    rmd = (end == std::string::npos) ? "" : command.substr(end + 1);
     std::cout << "[CLI] Command Handled by Thread with ID: " << std::this_thread::get_id() << std::endl;
     if (cmd == "help") {
         displayHelp();
     }
     else if (cmd == "step") {
-        model->stepOnce();
-        model->wake();
+        // Parse optional integer argument
+        int steps = 1;
+        if (!rmd.empty()) {
+            try {
+                steps = std::stoi(rmd);
+                if (steps < 1) steps = 1;
+            } catch (...) {
+                steps = 1;
+            }
+        }
+        if (steps == 1) {
+            model->stepOnce();
+            model->wake();
+        } else {
+            model->queueSteps(steps);
+        }
     }
     else if (cmd == "play") {
         model->setPlaying(true);
@@ -97,7 +113,7 @@ void CLI::displayGrid() const {
 void CLI::displayHelp() const {
     std::cout << "\nAvailable Commands:\n"
        << "  help     - Display this help message\n"
-       << "  step     - Perform one simulation step\n"
+       << "  step [N] - Queue one or N simulation steps (processed in main loop)\n"
        << "  play     - Start continuous simulation\n"
        << "  pause    - Pause continuous simulation\n"
        << "  speed X  - Set simulation speed to X (e.g., 0.5, 1, 2)\n"
