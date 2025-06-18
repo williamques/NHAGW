@@ -17,6 +17,7 @@ class CLI;  // Forward declaration
 struct SimulationState {
     std::atomic<bool> running{ false };
     std::atomic<bool> stepOnce{ false };
+    std::atomic<int> stepsToRun{ 0 }; // Add this line
 
     std::mutex m;
     std::condition_variable cv;
@@ -64,6 +65,8 @@ public:
     void loop();
     void step();
     void shuffle_step();
+    void step(int x); // keep for possible direct use, but CLI will not call directly
+    void queueSteps(int n); // Add this
 
     // Update UI and render graphics
     void initializeCLI();
